@@ -9,7 +9,6 @@ import {
   parseInstagram,
   parseMetaTags,
   parseTikTok,
-  parseVsco,
   proxyMedia,
   validateMediaUrl,
   validateSourceUrl,
@@ -36,6 +35,7 @@ test("source URL validation is HTTPS-only and platform allowlisted", () => {
 test("media URL validation blocks arbitrary proxy targets", () => {
   assert.equal(validateMediaUrl("https://v16.tiktokcdn.com/video.mp4", "tiktok").hostname, "v16.tiktokcdn.com");
   assert.equal(validateMediaUrl("https://scontent.cdninstagram.com/photo.jpg", "instagram").hostname, "scontent.cdninstagram.com");
+  assert.throws(() => validateMediaUrl("https://im.vsco.co/photo.jpg", "vsco"));
   assert.throws(() => validateMediaUrl("https://169.254.169.254/latest/meta-data", "tiktok"));
   assert.throws(() => validateMediaUrl("https://tiktokcdn.com.attacker.test/video.mp4", "tiktok"));
   assert.throws(() => validateMediaUrl("https://example.com/video.mp4", "facebook"));
@@ -117,15 +117,6 @@ test("Facebook parser prefers an HD source URL", () => {
   const result = parseFacebook(html, "https://www.facebook.com/reel/1");
   assert.equal(result.title, "Public clip");
   assert.match(result.media[0].previewUrl, /hd\.mp4/);
-});
-
-test("VSCO parser reads an individual original from preloaded state", () => {
-  const state = { medias: { byId: { abc: { media: { id: "abc", description: "VSCO example", responsiveUrl: "image.vsco.co/abc/original.jpg", width: 2048, height: 1365 } } } } };
-  const html = `<script>window.__PRELOADED_STATE__ = ${JSON.stringify(state)};</script>`;
-  const result = parseVsco(html, "https://vsco.co/user/media/abc");
-  assert.equal(result.media[0].kind, "image");
-  assert.equal(result.media[0].width, 2048);
-  assert.match(result.media[0].previewUrl, /image\.vsco\.co/);
 });
 
 test("resolver endpoint requires current active Terms acceptance", async () => {

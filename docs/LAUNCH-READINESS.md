@@ -8,8 +8,8 @@ Checked 2026-08-10. This is a product-risk record, not individual legal advice.
   exist and use no paid plan.
 - Local browser enhancement, downloads, consent, SSRF protection, bounded
   streaming, and responsive sponsor placeholders are implemented.
-- VSCO server resolution is paused before any upstream request. Its parser is
-  retained for a future authorized route and for the separate local Plus app.
+- VSCO server resolution and proxying are paused before any upstream request.
+  The separate local Plus app retains its own implementation.
 - No ad network, analytics, accounts, payments, or persistent media database is
   enabled.
 

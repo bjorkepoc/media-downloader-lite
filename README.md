@@ -3,8 +3,8 @@
 The zero-subscription edition of Media Downloader. Visitors paste a public
 Instagram, TikTok, or Facebook link, preview the best original media exposed
 by the source, and explicitly choose what to download. VSCO links are
-recognized but server resolution is paused rather than bypassing its edge
-protection or automating access without permission.
+recognized but server resolution and proxying are paused rather than bypassing
+its edge protection or automating access without permission.
 
 Production: <https://media-downloader-4y5.pages.dev/>
 
@@ -87,8 +87,8 @@ that no paid product has been enabled.
 - TikTok: public samples, separate exposed audio, and byte ranges verified.
 - Facebook: a current public sample verified; extraction remains platform-HTML
   dependent.
-- VSCO: the parser is retained and tested, but Lite pauses server resolution
-  before any upstream request. Plus retains its separate local implementation.
+- VSCO: Lite pauses resolution and proxying before any upstream request. Plus
+  retains its separate local implementation.
 
 ## License and security
 

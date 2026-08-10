@@ -17,7 +17,6 @@ const MEDIA_HOSTS = {
   tiktok: ["tiktok.com", "tiktokcdn.com", "tiktokcdn-eu.com", "tiktokcdn-us.com", "tiktokv.com", "byteoversea.com", "ibytedtos.com", "muscdn.com", "bytecdn.cn"],
   instagram: ["instagram.com", "cdninstagram.com", "fbcdn.net"],
   facebook: ["facebook.com", "fbcdn.net"],
-  vsco: ["vsco.co"],
 };
 
 const BROWSER_HEADERS = {
@@ -429,44 +428,6 @@ export function parseFacebook(html, sourceUrl) {
   };
 }
 
-function vscoResponsiveUrl(value) {
-  if (!value) return "";
-  if (/^https?:\/\//i.test(value)) return value.replace(/^http:/i, "https:");
-  if (value.startsWith("//")) return `https:${value}`;
-  const withoutScheme = value.replace(/^\/+/, "");
-  const [cdn, ...rest] = withoutScheme.split("/");
-  if (cdn.startsWith("aws")) return `https://image-${cdn}.vsco.co/${rest.join("/")}`;
-  if (/^\d+$/.test(cdn)) return `https://image.vsco.co/${withoutScheme}`;
-  return `https://${withoutScheme}`;
-}
-
-export function parseVsco(html, sourceUrl) {
-  const marker = "__PRELOADED_STATE__ = ";
-  const start = html.indexOf(marker);
-  let state = null;
-  if (start >= 0) {
-    const rest = html.slice(start + marker.length);
-    const end = rest.indexOf("</script>") >= 0 ? rest.indexOf("</script>") : rest.indexOf("<");
-    const raw = (end >= 0 ? rest.slice(0, end) : rest).trim().replace(/;$/, "").replace(/:undefined/g, ":null");
-    try { state = JSON.parse(raw); } catch { state = null; }
-  }
-  if (!state) return genericMetaResult("vsco", html, sourceUrl);
-
-  const wantedId = new URL(sourceUrl).pathname.match(/\/(?:media|video)\/([^/?#]+)/)?.[1];
-  const candidates = deepObjects(state).filter((value) => value && typeof value === "object" && (value.responsiveUrl || value.responsive_url || value.playbackUrl || value.playback_url || value.videoUrl || value.video_url));
-  const selected = candidates.find((value) => String(value.id || value._id) === wantedId) || candidates[0];
-  if (!selected) return genericMetaResult("vsco", html, sourceUrl);
-
-  const title = String(selected.description || "VSCO media").slice(0, 120);
-  const videoUrl = selected.playbackUrl || selected.playback_url || selected.videoUrl || selected.video_url;
-  const imageUrl = vscoResponsiveUrl(selected.responsiveUrl || selected.responsive_url || selected.posterUrl || selected.poster_url);
-  const isVideo = Boolean(selected.isVideo || selected.is_video || videoUrl);
-  const media = [];
-  if (isVideo && videoUrl) media.push(mediaItem("vsco", "video", videoUrl, title, { width: selected.width, height: selected.height }));
-  else if (imageUrl) media.push(mediaItem("vsco", "image", imageUrl, title, { width: selected.width, height: selected.height }));
-  return { ok: true, platform: "vsco", title, author: "", sourceUrl, media: dedupeMedia(media) };
-}
-
 async function readTextLimited(response, maximum = MAX_PAGE_BYTES) {
   if (!response.body) return "";
   const declared = Number(response.headers.get("content-length")) || 0;
@@ -582,7 +543,7 @@ export async function resolveSource(input) {
       const plugin = await fetchPage(pluginUrl, "facebook", 4, BROWSER_HEADERS, cookieJar);
       result = parseFacebook(plugin.html, page.url);
     }
-  } else result = parseVsco(page.html, page.url);
+  } else throw new Error("Unsupported source platform.");
 
   if (!result.media?.length) throw new Error("The public source did not expose a supported original file. It may be private, unavailable, or login-only.");
   if (result.media.every((item) => item.kind !== "video") && platform === "instagram") result.note = "Original image media ready. Reels that Instagram exposes only after login are intentionally not bypassed.";
@@ -629,7 +590,6 @@ function mediaReferer(platform) {
     tiktok: "https://www.tiktok.com/",
     instagram: "https://www.instagram.com/",
     facebook: "https://www.facebook.com/",
-    vsco: "https://vsco.co/",
   }[platform];
 }
 
