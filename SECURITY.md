@@ -5,9 +5,9 @@ Instagram, TikTok, and Facebook allowlists. Reports should use synthetic or
 public test data and must not include private media, access tokens, cookies, or
 personal information.
 
-Until this standalone project has its own remote repository, report privately
-through the existing project advisory page:
-<https://github.com/bjorkepoc/video-enhancer/security/advisories/new>.
+Report vulnerabilities privately through this standalone project's advisory
+page:
+<https://github.com/bjorkepoc/media-downloader-lite/security/advisories/new>.
 
 The service does not support private accounts, platform login, DRM bypass, or
 access-control circumvention. Source URLs, redirects, media hosts, request

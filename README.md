@@ -1,8 +1,10 @@
 # Media Downloader Lite
 
-The free, public, ad-funded edition of Media Downloader. Visitors paste a
-public VSCO, Instagram, TikTok, or Facebook link, preview the best original
-media exposed by the source, and explicitly choose what to download.
+The zero-subscription edition of Media Downloader. Visitors paste a public
+Instagram, TikTok, or Facebook link, preview the best original media exposed
+by the source, and explicitly choose what to download. VSCO links are
+recognized but server resolution is paused rather than bypassing its edge
+protection or automating access without permission.
 
 Production: <https://media-downloader-4y5.pages.dev/>
 
@@ -24,9 +26,11 @@ Production: <https://media-downloader-4y5.pages.dev/>
 
 ## Advertising and cost
 
-The page has responsive, clearly labelled direct-sponsor placements on desktop
-and mobile. They are placeholders and currently earn nothing. There is no ad
-network, tracking, cookie, impression beacon, or personalized advertising.
+The page has four responsive, clearly labelled direct-sponsor placements on
+desktop and mobile. Each now opens the standalone repository's structured
+sponsor inquiry. They remain available placements and earn nothing until a
+real sponsor agreement exists. There is no ad network, tracking, cookie,
+impression beacon, or personalized advertising.
 
 The current `pages.dev` deployment uses Cloudflare Pages and the Workers Free
 allowance. No paid plan or custom domain is required. If the free quota is
@@ -39,9 +43,19 @@ copyright, privacy, CMP/consent, operator-information, and `ads.txt` review.
 Google specifically restricts monetization of pages that enable downloads when
 the content provider prohibits them.
 
+## Launch status
+
+The code and Cloudflare deployment are public, but commercial marketing is
+blocked until real operator identity/address/email details are published and
+platform permission is clarified. A Terms checkbox does not grant the operator
+permission to automate platform access. Google Publisher Policies also make
+AdSense a poor fit while a source platform prohibits downloading. See
+[`docs/LAUNCH-READINESS.md`](docs/LAUNCH-READINESS.md).
+
 ## Relation to Plus
 
-The existing project at `/Users/po/dev/video-enhancer` is the Plus/Premium base.
+The separate <https://github.com/bjorkepoc/video-enhancer> project at
+`/Users/po/dev/video-enhancer` is the Plus/Premium base.
 It retains the local Python app, CLI, yt-dlp/gallery-dl integration, desktop
 packaging, FFmpeg presets, custom FPS, encoder choices, and the broader local
 feature set. Python and native FFmpeg run on the user's machine, not in this
@@ -73,8 +87,8 @@ that no paid product has been enabled.
 - TikTok: public samples, separate exposed audio, and byte ranges verified.
 - Facebook: a current public sample verified; extraction remains platform-HTML
   dependent.
-- VSCO: the local Plus app works, but VSCO currently challenges anonymous
-  Cloudflare edge requests. Lite reports the gap without bypassing protection.
+- VSCO: the parser is retained and tested, but Lite pauses server resolution
+  before any upstream request. Plus retains its separate local implementation.
 
 ## License and security
 

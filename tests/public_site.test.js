@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
+  anonymousRateKey,
   checkRateLimit,
   parseFacebook,
   parseInstagram,
@@ -46,6 +47,13 @@ test("best-effort in-isolate rate limiting closes after the configured count", (
   assert.equal(checkRateLimit(key, 1_001, 2), true);
   assert.equal(checkRateLimit(key, 1_002, 2), false);
   assert.equal(checkRateLimit(key, 62_000, 2), true);
+});
+
+test("rate-limit keys do not retain the raw client address", async () => {
+  const request = new Request("https://site.example/api/resolve", { headers: { "cf-connecting-ip": "192.0.2.42" } });
+  const first = await anonymousRateKey(request, "resolve");
+  assert.equal(first, await anonymousRateKey(request, "resolve"));
+  assert.doesNotMatch(first, /192\.0\.2\.42/);
 });
 
 test("meta parser handles attribute order and entities", () => {
@@ -131,46 +139,20 @@ test("resolver endpoint requires current active Terms acceptance", async () => {
   assert.match((await response.json()).error, /Terms of Use/);
 });
 
-test("resolver retries one anonymous cookie challenge", async () => {
+test("resolver pauses VSCO without making an upstream request", async () => {
   const originalFetch = globalThis.fetch;
-  const calls = [];
-  const state = { medias: { byId: { abc: { media: { id: "abc", responsiveUrl: "image.vsco.co/abc/original.jpg" } } } } };
-  globalThis.fetch = async (_url, init) => {
-    calls.push(init.headers.cookie || "");
-    if (calls.length === 1) return {
-      status: 403,
-      ok: false,
-      body: null,
-      headers: { getSetCookie: () => [], get: (name) => name === "set-cookie" ? "__cf_bm=anonymous; Path=/; Secure" : null },
-    };
-    return new Response(`<script>window.__PRELOADED_STATE__ = ${JSON.stringify(state)};</script>`);
-  };
+  let calls = 0;
+  globalThis.fetch = async () => { calls += 1; return new Response("unexpected"); };
   try {
     const request = new Request("https://site.example/api/resolve", {
       method: "POST",
       headers: { "content-type": "application/json", origin: "https://site.example", "cf-connecting-ip": "192.0.2.21" },
-      body: JSON.stringify({ url: "https://vsco.co/user/media/abc", termsAccepted: true, termsVersion: "2026-08-10" }),
-    });
-    const response = await resolveRequest({ request });
-    assert.equal(response.status, 200);
-    assert.deepEqual(calls, ["", "__cf_bm=anonymous"]);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-});
-
-test("resolver explains a VSCO edge block without bypassing it", async () => {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => new Response("blocked", { status: 403 });
-  try {
-    const request = new Request("https://site.example/api/resolve", {
-      method: "POST",
-      headers: { "content-type": "application/json", origin: "https://site.example", "cf-connecting-ip": "192.0.2.22" },
-      body: JSON.stringify({ url: "https://vsco.co/user/media/abc", termsAccepted: true, termsVersion: "2026-08-10" }),
+      body: JSON.stringify({ url: "https://vsco.co/user/media/abc", termsAccepted: true, termsVersion: "2026-08-10.2" }),
     });
     const response = await resolveRequest({ request });
     assert.equal(response.status, 400);
-    assert.match((await response.json()).error, /VSCO currently blocks this free edge resolver/);
+    assert.match((await response.json()).error, /automated resolution is paused/);
+    assert.equal(calls, 0);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -271,7 +253,9 @@ test("public UI is ad-funded, payment-free, consentful, and API-only on Function
     readFile(new URL("../public-site/styles.css", import.meta.url), "utf8"),
     readFile(new URL("../public-site/_routes.json", import.meta.url), "utf8"),
   ]);
-  assert.equal((html.match(/aria-label="Advertisement"/g) || []).length, 4);
+  assert.equal((html.match(/aria-label="Available advertisement"/g) || []).length, 4);
+  assert.equal((html.match(/rel="sponsored noopener noreferrer"/g) || []).length, 4);
+  assert.equal((html.match(/media-downloader-lite\/issues\/new\?template=sponsor\.yml/g) || []).length, 4);
   assert.match(html, /60 FPS/);
   assert.match(html, /90 FPS/);
   assert.match(html, /2× upscale/);
@@ -279,7 +263,8 @@ test("public UI is ad-funded, payment-free, consentful, and API-only on Function
   assert.match(html, /Nothing is saved to Downloads until you choose it/);
   assert.match(html, /Media Downloader Lite/);
   assert.match(html, /No login, account, or payment/);
-  assert.match(html, /mandatory consumer rights/);
+  assert.match(html, /mandatory rights under applicable law/);
+  assert.match(html, /VSCO links are recognized, but automated resolution is paused/);
   assert.doesNotMatch(`${html}\n${app}`, /Stripe|subscription|checkout|billing/i);
   assert.doesNotMatch(html, /300 × 600|970 × 90/);
   assert.doesNotMatch(app, /localStorage|indexedDB/i);

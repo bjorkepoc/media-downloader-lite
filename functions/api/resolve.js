@@ -1,5 +1,6 @@
 import {
   TERMS_VERSION,
+  anonymousRateKey,
   checkRateLimit,
   json,
   readJSONBody,
@@ -9,8 +10,7 @@ import {
 
 export async function onRequestPost({ request }) {
   if (!requestOriginIsAllowed(request)) return json({ error: "Cross-origin requests are not accepted." }, 403);
-  const client = request.headers.get("cf-connecting-ip") || "local";
-  if (!checkRateLimit(`resolve:${client}`)) return json({ error: "Too many requests. Wait a minute and try again." }, 429, { "retry-after": "60" });
+  if (!checkRateLimit(await anonymousRateKey(request, "resolve"))) return json({ error: "Too many requests. Wait a minute and try again." }, 429, { "retry-after": "60" });
 
   try {
     const body = await readJSONBody(request);

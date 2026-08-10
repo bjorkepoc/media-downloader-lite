@@ -1,6 +1,6 @@
 import { processLocally, terminateLocalProcessor } from "./local-processor.js";
 
-const TERMS_VERSION = "2026-08-10";
+const TERMS_VERSION = "2026-08-10.2";
 const $ = (id) => document.getElementById(id);
 const state = {
   resolved: null,

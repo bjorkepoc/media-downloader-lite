@@ -1,7 +1,7 @@
 // Public embed parsing patterns are partially adapted from
 // Vette1123/social-media-downloader (MIT, Copyright 2025 Mohamed Gado).
 
-export const TERMS_VERSION = "2026-08-10";
+export const TERMS_VERSION = "2026-08-10.2";
 export const MAX_JSON_BYTES = 4096;
 export const MAX_PAGE_BYTES = 2_500_000;
 export const MAX_MEDIA_BYTES = 1024 * 1024 * 1024;
@@ -35,7 +35,9 @@ const INSTAGRAM_HEADERS = {
   "user-agent": "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
 };
 
+// ponytail: isolate-local limiting costs nothing; use Cloudflare Rate Limiting if real abuse outgrows it.
 const rateWindows = new Map();
+const RATE_SALT = "media-downloader-lite-rate-limit-v1";
 
 function hostMatches(hostname, allowed) {
   const host = hostname.toLowerCase().replace(/\.$/, "");
@@ -90,6 +92,13 @@ export function checkRateLimit(key, now = Date.now(), maximum = 15) {
   }
   current.count += 1;
   return current.count <= maximum;
+}
+
+export async function anonymousRateKey(request, scope) {
+  const address = request.headers.get("cf-connecting-ip") || "local";
+  const input = new TextEncoder().encode(`${RATE_SALT}:${address}`);
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", input));
+  return `${scope}:${[...digest.slice(0, 12)].map((byte) => byte.toString(16).padStart(2, "0")).join("")}`;
 }
 
 function decodeEntities(value) {
@@ -555,6 +564,9 @@ async function instagramPage(sourceUrl, cookieJar) {
 
 export async function resolveSource(input) {
   const { platform, url } = validateSourceUrl(input);
+  if (platform === "vsco") {
+    throw new Error("VSCO links are recognized, but automated resolution is paused. We do not bypass platform protections or automate access without permission.");
+  }
   const cookieJar = new Map();
   let page;
   if (platform === "instagram") page = await instagramPage(url.href, cookieJar);

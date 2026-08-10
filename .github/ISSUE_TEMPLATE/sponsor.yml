@@ -1,0 +1,46 @@
+name: Sponsor inquiry
+description: Ask about one of the static, tracking-free ad placements.
+title: "Sponsor inquiry: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is public. Do not include private contact details, contracts, or payment information. The site does not accept tracking pixels or third-party ad scripts.
+  - type: input
+    id: organization
+    attributes:
+      label: Organization
+      placeholder: Company or project name
+    validations:
+      required: true
+  - type: input
+    id: website
+    attributes:
+      label: Destination URL
+      placeholder: https://example.com
+    validations:
+      required: true
+  - type: dropdown
+    id: placement
+    attributes:
+      label: Preferred placement
+      options:
+        - Desktop side rail
+        - Responsive horizontal placement
+        - Any available placement
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: Describe the product, target market, desired period, and budget range without sharing confidential information.
+    validations:
+      required: true
+  - type: checkboxes
+    id: requirements
+    attributes:
+      label: Placement requirements
+      options:
+        - label: I can supply a static image, accessible alt text, and a destination URL with no tracking pixel or executable script.
+          required: true
