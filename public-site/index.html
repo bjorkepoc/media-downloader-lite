@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Media Downloader Lite previews and downloads original public media from VSCO, Instagram, TikTok, and Facebook, with optional enhancement performed locally in your browser.">
+    <title>Media Downloader Lite</title>
+    <link rel="stylesheet" href="/styles.css?v=20260810-1">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Media Downloader Lite home">Media <strong>Downloader Lite</strong></a>
+      <nav aria-label="Legal information">
+        <button type="button" data-dialog="privacy-dialog">Privacy</button>
+        <button type="button" data-dialog="terms-dialog">Terms</button>
+      </nav>
+    </header>
+
+    <div class="page-grid">
+      <aside class="ad-rail ad-rail-left" aria-label="Advertisement">
+        <a class="ad ad-vertical" href="https://github.com/bjorkepoc/video-enhancer/issues/new?title=Media%20Downloader%20Lite%20advertising%20inquiry" target="_blank" rel="noopener noreferrer">
+          <span>Advertisement</span><strong>Place your ad here</strong><small>Direct, clearly labelled sponsorship</small><i>Responsive desktop sponsor</i>
+        </a>
+      </aside>
+
+      <main>
+        <section class="intro" aria-labelledby="page-title">
+          <h1 id="page-title">Paste an image or video link. Keep the files.</h1>
+          <p>Paste a public link from VSCO, Instagram, TikTok, or Facebook to preview the best original media the source exposes. Nothing is saved to Downloads until you choose it. VSCO may temporarily block anonymous edge retrieval.</p>
+
+          <form id="source-form">
+            <label class="sr-only" for="source-url">Image or video URL</label>
+            <div class="source-row">
+              <input id="source-url" name="url" type="url" inputmode="url" autocomplete="url" maxlength="2048" required placeholder="Paste a VSCO, Instagram, TikTok or Facebook link">
+              <button class="button button-primary" id="get-media" type="submit">Get media</button>
+            </div>
+            <p class="trust-line">Public posts only. No login, account, or payment. Media resolution uses a tiny edge resolver; enhancement runs on your device.</p>
+            <label class="check-row" for="terms-accepted">
+              <input id="terms-accepted" type="checkbox" required>
+              <span>I will only download content I have the right to access and use, and I agree to the <button type="button" class="text-button" data-dialog="terms-dialog">Terms of Use</button>.</span>
+            </label>
+            <p class="form-status" id="form-status" role="alert" aria-live="polite"></p>
+          </form>
+        </section>
+
+        <section class="mobile-ad" aria-label="Advertisement">
+          <a class="ad ad-horizontal" href="https://github.com/bjorkepoc/video-enhancer/issues/new?title=Media%20Downloader%20Lite%20advertising%20inquiry" target="_blank" rel="noopener noreferrer">
+            <span>Advertisement</span><strong>Place your ad here</strong><small>Direct sponsor placement</small>
+          </a>
+        </section>
+
+        <section class="workspace" id="workspace" aria-label="Media workspace">
+          <div class="empty-state" id="empty-state">
+            <span class="empty-mark" aria-hidden="true">↗</span>
+            <h2 id="workspace-title">Paste a supported link</h2>
+            <p>Your original image, video, or audio will appear here to preview and download.</p>
+          </div>
+
+          <div class="result" id="result" hidden>
+            <div class="media-column">
+              <div class="media-stage" id="media-stage">
+                <video id="source-video" controls playsinline preload="metadata" hidden></video>
+                <img id="source-image" alt="Resolved source media" hidden>
+              </div>
+              <div class="viewer-controls" id="viewer-controls" hidden>
+                <button type="button" id="frame-back" aria-label="Previous frame">|◀</button>
+                <button type="button" id="frame-forward" aria-label="Next frame">▶|</button>
+                <button type="button" id="one-fps" aria-pressed="false">1 FPS</button>
+                <label>Step FPS <input id="step-fps" type="number" min="1" max="240" step="0.001" value="30"></label>
+                <button type="button" id="zoom-out" aria-label="Zoom out">−</button>
+                <output id="zoom-output" for="zoom-range">1×</output>
+                <input id="zoom-range" class="sr-only" type="range" min="1" max="8" step="0.5" value="1" aria-label="Zoom level">
+                <button type="button" id="zoom-in" aria-label="Zoom in">+</button>
+                <button type="button" id="zoom-reset">Reset</button>
+              </div>
+            </div>
+
+            <div class="result-info">
+              <p class="platform-name" id="platform-name"></p>
+              <h2 id="result-title"></h2>
+              <p class="result-author" id="result-author"></p>
+              <dl id="result-meta"></dl>
+              <div class="download-actions" id="download-actions"></div>
+            </div>
+
+            <div class="carousel" id="carousel" hidden></div>
+
+            <section class="enhance" id="enhance-section" hidden aria-labelledby="enhance-title">
+              <div class="enhance-copy">
+                <h3 id="enhance-title">Enhance on this device</h3>
+                <p>After consent, your browser loads a local FFmpeg engine and uses this device's CPU, memory, battery, and temporary browser storage. The original remains unchanged.</p>
+              </div>
+              <label class="check-row" for="processing-accepted">
+                <input id="processing-accepted" type="checkbox">
+                <span>I understand this creates a separate synthetic file on this device.</span>
+              </label>
+              <div class="enhance-options">
+                <fieldset>
+                  <legend>Mode</legend>
+                  <button type="button" data-mode="60">60 FPS</button>
+                  <button type="button" data-mode="90">90 FPS</button>
+                  <button type="button" data-mode="upscale">2× upscale</button>
+                  <button type="button" data-mode="audio">Extract MP3</button>
+                </fieldset>
+                <fieldset>
+                  <legend>Filter</legend>
+                  <label><input type="radio" name="filter" value="none" checked> None</label>
+                  <label><input type="radio" name="filter" value="clean"> Clean</label>
+                  <label><input type="radio" name="filter" value="sharpen"> Sharpen</label>
+                </fieldset>
+              </div>
+              <div class="progress-row">
+                <progress id="enhance-progress" max="1" value="0"></progress>
+                <output id="enhance-percent">0%</output>
+              </div>
+              <p class="enhance-status" id="enhance-status" aria-live="polite">Ready to enhance. No processing has started.</p>
+              <div class="enhanced-result" id="enhanced-result" hidden>
+                <video id="enhanced-video" controls playsinline hidden></video>
+                <a class="button button-primary" id="enhanced-download" download>Download enhanced file</a>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="bottom-ad" aria-label="Advertisement">
+          <a class="ad ad-horizontal" href="https://github.com/bjorkepoc/video-enhancer/issues/new?title=Media%20Downloader%20Lite%20advertising%20inquiry" target="_blank" rel="noopener noreferrer">
+            <span>Advertisement</span><strong>Place your ad here</strong><small>Responsive direct sponsor placement</small>
+          </a>
+        </section>
+      </main>
+
+      <aside class="ad-rail ad-rail-right" aria-label="Advertisement">
+        <a class="ad ad-vertical" href="https://github.com/bjorkepoc/video-enhancer/issues/new?title=Media%20Downloader%20Lite%20advertising%20inquiry" target="_blank" rel="noopener noreferrer">
+          <span>Advertisement</span><strong>Place your ad here</strong><small>Direct, clearly labelled sponsorship</small><i>Responsive desktop sponsor</i>
+        </a>
+      </aside>
+    </div>
+
+    <footer>
+      <div>
+        <a href="https://github.com/bjorkepoc/video-enhancer/issues/new?title=Contact" target="_blank" rel="noopener noreferrer">Contact</a>
+        <button type="button" data-dialog="privacy-dialog">Privacy</button>
+        <button type="button" data-dialog="terms-dialog">Terms</button>
+      </div>
+      <p>We do not run accounts, analytics, or persistent media storage. Static sponsor placements use no tracking.</p>
+    </footer>
+
+    <dialog id="privacy-dialog" aria-labelledby="privacy-title">
+      <form method="dialog" class="dialog-card">
+        <div class="dialog-head"><h2 id="privacy-title">Privacy notice</h2><button aria-label="Close privacy notice">×</button></div>
+        <p>The page sends the public link you submit to a minimal Cloudflare Pages Function. The Function fetches only supported public pages, returns short-lived source-media links, and does not intentionally store the submitted URL or media after the request. For TikTok's signed video CDN, it may replay anonymous platform session headers inside one request; they are discarded and never set in your browser.</p>
+        <p>Cloudflare, the source platform, its media CDN, and your network provider process ordinary connection data such as IP addresses. Their own terms and privacy notices apply. Operator logging and analytics are disabled.</p>
+        <p>Previewing or processing media transfers bytes into temporary browser memory or cache. A file appears in Downloads only when you choose a download action. Closing or reloading the page clears in-memory results.</p>
+        <p>Optional enhancement starts only after separate consent. The FFmpeg WebAssembly engine is fetched from the version-pinned jsDelivr CDN, so jsDelivr receives an ordinary network request. Source media and output are processed inside your browser, not by our Worker.</p>
+        <p>The visible sponsor placements are static and tracking-free. No browser cookies, localStorage, IndexedDB, advertising identifiers, or personalized-ad scripts are used. This notice and a suitable consent flow must be updated before any ad network or analytics is enabled.</p>
+        <button class="button" value="close">Done</button>
+      </form>
+    </dialog>
+
+    <dialog id="terms-dialog" aria-labelledby="terms-title">
+      <form method="dialog" class="dialog-card">
+        <div class="dialog-head"><h2 id="terms-title">Terms of Use</h2><button aria-label="Close terms">×</button></div>
+        <p>Version 2026-08-10. The tool is for public, unencrypted media that you own, are permitted to save, or may lawfully use. You are responsible for copyright, privacy, applicable law, and each platform's terms. Private accounts, login, cookies, DRM bypass, and access-control circumvention are not supported.</p>
+        <p>Source quality and availability are controlled by third parties. We do not guarantee a resolution, frame rate, codec, uninterrupted platform support, or that a link will remain available. When video and audio are exposed as separate streams, the public version does not merge them on the server.</p>
+        <p>Local enhancement can be slow, use substantial CPU, memory, temporary storage and battery, make a device warm, or fail on large or unsupported files. Enhanced frames and pixels are synthetic and may contain artifacts.</p>
+        <p>To the extent permitted by law, the service is provided as available without warranties and the operator is not responsible for user-selected content or third-party platform changes. Nothing here excludes liability or mandatory consumer rights that cannot legally be excluded.</p>
+        <button class="button" value="close">Done</button>
+      </form>
+    </dialog>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
