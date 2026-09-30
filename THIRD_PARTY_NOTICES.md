@@ -12,3 +12,6 @@
   Small public-embed parsing patterns were adapted for the Cloudflare resolver;
   the project was not imported wholesale. Source and license:
   <https://github.com/Vette1123/social-media-downloader>.
+
+The vendored FFmpeg browser wrapper has a local modification to reject pending
+calls and terminate its Worker when a Worker error occurs.
